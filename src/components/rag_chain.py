@@ -9,7 +9,11 @@ logger = get_logger(__name__)
 class RAGChain:
     def __init__(self, retriever):
         self.retriever = retriever
-        self.llm = Ollama(model=MODEL_NAME)
+        self.llm = Ollama(
+    model=MODEL_NAME,
+    base_url="http://localhost:11434",
+    temperature=0.2
+)
 
     def generate_response(self, query: str):
         try:
