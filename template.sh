@@ -23,4 +23,8 @@ touch requirements.txt
 
 touch research/trials.ipynb
 
+touch src/components/pipeline.py
+touch src/utils/logger.py
+touch src/utils/exceptions.py
+
 echo "Structure Ready"
