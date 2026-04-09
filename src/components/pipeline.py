@@ -2,7 +2,7 @@ import os
 from src.components.loader import load_pdfs
 from src.components.splitter import split_documents
 from src.components.embedding import load_embedding_model
-from src.components.retriever import create_vectorstore
+from src.components.embedding import create_vectorstore
 from src.utils.logger import get_logger
 from config import DATA_PATH, CHROMA_DIR
 
@@ -28,6 +28,6 @@ def run_ingestion_pipeline():
     chunks = split_documents(documents)
     embedding_model = load_embedding_model()
 
-    create_vectorstore(chunks, embedding_model)
+    create_vectorstore(chunks)
 
     logger.info("Ingestion pipeline completed successfully.")

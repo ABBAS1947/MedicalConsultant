@@ -1,52 +1,54 @@
 import os
 import fitz  # PyMuPDF
-from typing import List, Dict
+from langchain_core.documents import Document
 from src.utils.logger import get_logger
-from src.utils.exceptions import RAGException
+from src.utils.exceptions import DocumentLoadException
 
 logger = get_logger(__name__)
 
 
-def load_pdfs(data_path: str) -> List[Dict]:
-    """
-    Load all PDF documents from a directory using PyMuPDF.
-
-    Returns:
-        List of dicts with keys: text, source, page
-    """
-    if not os.path.exists(data_path):
-        raise RAGException(f"Data path does not exist: {data_path}")
-
+def load_pdfs(data_path: str):
     documents = []
 
-    try:
-        for file_name in os.listdir(data_path):
-            if not file_name.lower().endswith(".pdf"):
-                continue
+    if not os.path.exists(data_path):
+        raise DocumentLoadException(f"Data path does not exist: {data_path}")
 
-            file_path = os.path.join(data_path, file_name)
-            logger.info(f"Loading file: {file_name}")
+    pdf_files = [f for f in os.listdir(data_path) if f.endswith(".pdf")]
 
+    if not pdf_files:
+        raise DocumentLoadException("No PDF files found in data directory.")
+
+    for file in pdf_files:
+        file_path = os.path.join(data_path, file)
+
+        try:
+            logger.info(f"Loading file: {file}")
             pdf = fitz.open(file_path)
 
-            for page_num, page in enumerate(pdf):
-                text = page.get_text("text")
+            for page_num in range(len(pdf)):
+                page = pdf[page_num]
+                text = page.get_text().strip()
 
-                if text and text.strip():
-                    documents.append({
-                        "text": text.strip(),
-                        "source": file_name,
-                        "page": page_num + 1
-                    })
+                # Skip empty or garbage pages
+                if not text or len(text) < 50:
+                    continue
 
-            pdf.close()
+                documents.append(
+                    Document(
+                        page_content=text,
+                        metadata={
+                            "source": file,
+                            "page": page_num + 1
+                        }
+                    )
+                )
 
-        if not documents:
-            raise RAGException("No valid text extracted from PDFs.")
+        except Exception as e:
+            logger.error(f"Failed to process {file}: {str(e)}")
+            continue  # skip bad files instead of crashing
 
-        logger.info(f"Loaded {len(documents)} pages from PDFs.")
-        return documents
+    if not documents:
+        raise DocumentLoadException("No valid text extracted from PDFs.")
 
-    except Exception as e:
-        logger.error(f"Error loading PDFs: {str(e)}")
-        raise RAGException(str(e))
+    logger.info(f"Loaded {len(documents)} valid pages from PDFs.")
+    return documents

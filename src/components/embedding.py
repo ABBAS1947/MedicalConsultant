@@ -1,16 +1,23 @@
-from langchain.embeddings import HuggingFaceEmbeddings
-from src.utils.logger import get_logger
-from config import EMBEDDING_MODEL
-
-logger = get_logger(__name__)
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from config import CHROMA_DIR, EMBEDDING_MODEL
 
 
 def load_embedding_model():
-    """
-    Load embedding model locally.
-    """
-    logger.info(f"Loading embedding model: {EMBEDDING_MODEL}")
-
     return HuggingFaceEmbeddings(
         model_name=EMBEDDING_MODEL
     )
+
+
+def create_vectorstore(documents):
+    embedding_model = load_embedding_model()
+
+    vectordb = Chroma.from_documents(
+        documents=documents,
+        embedding=embedding_model,
+        persist_directory=CHROMA_DIR,
+        collection_name="medical_knowledge_base"
+    )
+
+    vectordb.persist()
+    return vectordb

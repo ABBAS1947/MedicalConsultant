@@ -1,4 +1,4 @@
-from langchain_ollama import Ollama
+from langchain_community.llms import Ollama
 from src.utils.prompt import SYSTEM_PROMPT
 from src.utils.logger import get_logger
 from config import MODEL_NAME
@@ -17,7 +17,7 @@ class RAGChain:
 
     def generate_response(self, query: str):
         try:
-            docs = self.retriever.get_relevant_documents(query)
+            docs = self.retriever.invoke(query)
 
             if not docs:
                 return {
