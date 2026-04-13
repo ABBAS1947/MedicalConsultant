@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL_NAME = os.getenv("MODEL_NAME", "llama3.2")
+MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5:1.5b")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
 CHROMA_DIR = os.getenv("CHROMA_DIR", "vectorstore")

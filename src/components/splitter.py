@@ -1,36 +1,55 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from typing import List
+from langchain_core.documents import Document
 from src.utils.logger import get_logger
-from src.utils.exceptions import ChunkingException
 
 logger = get_logger(__name__)
 
 
-def split_documents(documents):
-    if not documents:
-        raise ChunkingException("No documents provided for splitting.")
+def split_documents(documents: List[Document]) -> List[Document]:
+    """
+    Enterprise-grade document splitter.
 
-    try:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50,
-            separators=["\n\n", "\n", ".", " ", ""]
-        )
+    Features:
+    - Recursive splitting (structure-aware)
+    - Configurable chunk size & overlap
+    - Metadata preservation
+    - Unique chunk IDs
+    """
 
-        chunks = splitter.split_documents(documents)
+    logger.info("Starting document splitting...")
 
-        # Filter bad chunks
-        clean_chunks = [
-            chunk for chunk in chunks
-            if chunk.page_content and len(chunk.page_content.strip()) > 30
+    # 🔧 CONFIG (tune later if needed)
+    CHUNK_SIZE = 800
+    CHUNK_OVERLAP = 150
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
+        separators=[
+            "\n\n",  # paragraphs
+            "\n",    # lines
+            ". ",    # sentences
+            " ",     # words
+            ""       # characters fallback
         ]
+    )
 
-        logger.info(f"Created {len(clean_chunks)} clean chunks from {len(documents)} documents.")
+    chunks = []
+    chunk_id = 0
 
-        if not clean_chunks:
-            raise ChunkingException("Chunking resulted in zero valid chunks.")
+    for doc in documents:
+        split_docs = splitter.split_documents([doc])
 
-        return clean_chunks
+        for chunk in split_docs:
+            # 🧠 Add metadata
+            chunk.metadata["chunk_id"] = chunk_id
+            chunk.metadata["source"] = doc.metadata.get("source", "unknown")
+            chunk.metadata["page"] = doc.metadata.get("page", "unknown")
 
-    except Exception as e:
-        logger.error(f"Chunking failed: {str(e)}")
-        raise ChunkingException(str(e))
+            chunks.append(chunk)
+            chunk_id += 1
+
+    logger.info(f"Splitting completed. Total chunks: {len(chunks)}")
+
+    return chunks
