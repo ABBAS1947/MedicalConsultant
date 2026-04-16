@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Consultant AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f1eb;
+      --surface: #fffdf8;
+      --border: #e0dbd0;
+      --text-primary: #1a1814;
+      --text-secondary: #6b6760;
+      --accent: #2d6a4f;
+      --accent-light: #e8f5ee;
+      --accent-mid: #52b788;
+      --danger: #c0392b;
+      --danger-light: #fdf0ef;
+      --info: #1a6896;
+      --info-light: #eaf4fb;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+    }
+
+    header {
+      margin-bottom: 36px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    .brand p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #aaa;
+      transition: background 0.3s;
+    }
+    .dot.ready { background: var(--accent-mid); }
+    .dot.pulse {
+      background: var(--accent-mid);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.975rem;
+      color: var(--text-primary);
+      background: var(--bg);
+      resize: vertical;
+      min-height: 110px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 11px 22px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      flex: 1;
+    }
+    .btn-primary:hover:not(:disabled) { background: #235a41; }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-secondary:hover { background: var(--bg); }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    /* Loading */
+    .loading-area {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 0 4px;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+    .loading-area.active { display: flex; }
+
+    .bar-wrap {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--accent-mid);
+      border-radius: 99px;
+      animation: slide 1.6s ease-in-out infinite;
+      width: 40%;
+    }
+    @keyframes slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(300%); }
+    }
+
+    /* Error */
+    .error-box {
+      display: none;
+      background: var(--danger-light);
+      border: 1px solid #f0b8b4;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 0.875rem;
+      color: var(--danger);
+      margin-top: 16px;
+    }
+    .error-box.active { display: block; }
+
+    /* Response */
+    .response-card {
+      display: none;
+    }
+    .response-card.active { display: block; }
+
+    .answer-section {
+      margin-bottom: 20px;
+    }
+
+    .answer-text {
+      font-size: 0.975rem;
+      color: var(--text-primary);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .disclaimer {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--info-light);
+      border-left: 3px solid var(--info);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.8rem;
+      color: var(--info);
+      line-height: 1.5;
+    }
+
+    /* Sources */
+    .sources-section { margin-top: 20px; }
+    .sources-section label { margin-bottom: 12px; }
+
+    .source-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 500;
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin: 4px 4px 4px 0;
+    }
+
+    /* Divider */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      padding: 24px 0 8px;
+    }
+
+    /* Queries counter */
+    .meta-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .meta-chip {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 14px;
+    }
+    .meta-chip strong { color: var(--text-primary); }
+
+    @media (max-width: 500px) {
+      .brand h1 { font-size: 1.5rem; }
+      .card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <div class="brand">
+        <h1>Medical Consultant</h1>
+        <p>AI-powered answers based on clinical knowledge</p>
+      </div>
+      <div class="status-pill">
+        <span class="dot ready" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <div class="meta-row">
+      <div class="meta-chip">Queries this session: <strong id="queryCount">0</strong></div>
+    </div>
+
+    <div class="card">
+      <label for="queryInput">Your medical question</label>
+      <textarea id="queryInput" placeholder="e.g. What are the early warning signs of type 2 diabetes?"></textarea>
+      <div class="actions">
+        <button class="btn-primary" id="searchBtn" onclick="submitQuery()">Ask question</button>
+        <button class="btn-secondary" onclick="clearAll()">Clear</button>
+      </div>
+      <p class="hint">Tip: Ctrl + Enter to submit</p>
+    </div>
+
+    <div class="loading-area" id="loading">
+      <span>Thinking…</span>
+      <div class="bar-wrap"><div class="bar-fill"></div></div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="card response-card" id="responseCard">
+      <div class="answer-section">
+        <label>Answer</label>
+        <div class="answer-text" id="answerText"></div>
+        <div class="disclaimer">
+          This information is for educational purposes only and does not constitute medical advice.
+          Always consult a qualified healthcare professional for diagnosis and treatment.
+        </div>
+      </div>
+
+      <div class="sources-section" id="sourcesSection" style="display:none">
+        <hr>
+        <label>Sources referenced</label>
+        <div id="sourcesList"></div>
+      </div>
+    </div>
+
+    <footer>Medical Consultant AI &mdash; Powered by Masnoi</footer>
+  </div>
+
+  <script>
+    let queryCount = 0;
+    const API_URL = window.location.protocol === 'file:'
+      ? 'http://localhost:8000'
+      : window.location.origin;
+
+    const queryInput  = document.getElementById('queryInput');
+    const searchBtn   = document.getElementById('searchBtn');
+    const loading     = document.getElementById('loading');
+    const errorBox    = document.getElementById('errorBox');
+    const responseCard= document.getElementById('responseCard');
+    const answerText  = document.getElementById('answerText');
+    const sourcesSection = document.getElementById('sourcesSection');
+    const sourcesList = document.getElementById('sourcesList');
+    const statusDot   = document.getElementById('statusDot');
+    const statusText  = document.getElementById('statusText');
+    const queryCountEl= document.getElementById('queryCount');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkApiHealth();
+      setInterval(checkApiHealth, 10000);
+    });
+
+    queryInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.ctrlKey) submitQuery();
+    });
+
+    function setStatus(state) {
+      statusDot.className = 'dot';
+      statusDot.style.background = '';
+      if (state === 'loading') {
+        statusDot.classList.add('pulse');
+        statusText.textContent = 'Thinking…';
+      } else if (state === 'error') {
+        statusDot.style.background = '#c0392b';
+        statusText.textContent = 'Error';
+      } else if (state === 'ready') {
+        statusDot.classList.add('ready');
+        statusText.textContent = 'Ready';
+      } else {
+        statusText.textContent = 'Offline';
+      }
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.add('active');
+    }
+
+    function hideError() {
+      errorBox.classList.remove('active');
+      errorBox.textContent = '';
+    }
+
+    async function checkApiHealth() {
+      try {
+        const res = await fetch(`${API_URL}/health`, { method: 'GET' });
+        if (!res.ok) throw new Error('API not ready');
+        const data = await res.json();
+        setStatus(data.status === 'healthy' ? 'ready' : 'ready');
+      } catch (err) {
+        setStatus('error');
+        showError(`Unable to reach local API at ${API_URL}. Make sure api.py is running.`);
+      }
+    }
+
+    async function submitQuery() {
+      const query = queryInput.value.trim();
+      if (!query) { showError('Please enter a question before searching.'); return; }
+
+      hideError();
+      responseCard.classList.remove('active');
+      loading.classList.add('active');
+      searchBtn.disabled = true;
+      setStatus('loading');
+
+      try {
+        const response = await fetch(`${API_URL}/query`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || `API error ${response.status}`);
+        }
+
+        const data = await response.json();
+        answerText.textContent = data.answer || 'No answer returned.';
+
+        if (Array.isArray(data.sources) && data.sources.length > 0) {
+          sourcesList.innerHTML = data.sources.map(s =>
+            `<span class="source-chip">${s.source || 'Unknown source'}${s.page ? ' — ' + s.page : ''}</span>`
+          ).join('');
+          sourcesSection.style.display = 'block';
+        } else {
+          sourcesSection.style.display = 'none';
+        }
+
+        responseCard.classList.add('active');
+        queryCount++;
+        queryCountEl.textContent = queryCount;
+        setStatus('ready');
+      } catch (err) {
+        showError('Error: ' + err.message);
+        setStatus('error');
+      } finally {
+        loading.classList.remove('active');
+        searchBtn.disabled = false;
+      }
+    }
+
+    function clearAll() {
+      queryInput.value = '';
+      hideError();
+      responseCard.classList.remove('active');
+      setStatus('ready');
+      queryInput.focus();
+    }
+  </script>
+</body>
+</html>
