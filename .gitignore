@@ -209,3 +209,5 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+vectorstore/738c96d3-cb90-4f71-b2f5-348f836965f5/header.bin
+vectorstore/738c96d3-cb90-4f71-b2f5-348f836965f5/data_level0.bin

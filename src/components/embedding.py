@@ -41,3 +41,39 @@ def create_vectorstore(documents):
 
     vectordb.persist()
     return vectordb
+
+
+def load_existing_vectorstore():
+    """
+    Load an existing vectorstore from disk.
+    Returns None if vectorstore doesn't exist.
+    """
+    if not os.path.exists(CHROMA_DIR) or not os.listdir(CHROMA_DIR):
+        return None
+    
+    embedding_model = load_embedding_model()
+    vectordb = Chroma(
+        persist_directory=CHROMA_DIR,
+        embedding_function=embedding_model,
+        collection_name="medical_knowledge_base"
+    )
+    
+    return vectordb
+
+
+def add_documents_to_vectorstore(documents):
+    """
+    Add new documents to an existing vectorstore.
+    Creates vectorstore if it doesn't exist.
+    """
+    embedding_model = load_embedding_model()
+    
+    vectordb = Chroma(
+        persist_directory=CHROMA_DIR,
+        embedding_function=embedding_model,
+        collection_name="medical_knowledge_base"
+    )
+    
+    vectordb.add_documents(documents)
+    vectordb.persist()
+    return vectordb
