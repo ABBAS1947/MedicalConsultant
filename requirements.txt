@@ -1,14 +1,30 @@
-langchain==0.2.16
-langchain-community==0.2.16
+# Core LangChain Framework
+langchain==1.2.15
+langchain-core==1.2.28
+langchain-community==0.4.1
+langchain-text-splitters==1.1.1
 
-chromadb==0.5.5
-sentence-transformers==2.7.0
+# Specialized LangChain Packages
+langchain-ollama==1.1.0
+langchain-huggingface==1.2.1
+langchain-openai==0.3.2
 
-ollama==0.3.3
+# Vector Database & Embeddings
+chromadb==1.5.7
+sentence-transformers==5.4.0
 
-pymupdf==1.22.5
-python-docx==1.1.2
+# LLM Integration
+ollama==0.6.1
 
-tqdm==4.66.4
-numpy==2.4.4
-scikit-learn==1.5.1
+# PDF Processing
+PyMuPDF==1.27.2.2
+
+# Environment & Configuration
+python-dotenv==1.2.2
+
+# Frontend - Streamlit
+streamlit==1.56.0
+
+# Web Framework (Optional - for REST API)
+fastapi==0.135.3
+uvicorn==0.44.0
